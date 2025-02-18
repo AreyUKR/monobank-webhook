@@ -4,6 +4,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
+app.get('/health', (req, res) => res.sendStatus(200));
 
 // Тимчасове сховище в пам'яті
 const payments = new Map();
