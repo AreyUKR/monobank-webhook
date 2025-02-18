@@ -9,6 +9,7 @@ app.use(bodyParser.json());
 const payments = new Map();
 
 app.post('/monobank-webhook', (req, res) => {
+    console.log('Отримано вебхук:', req.body);
     try {
         const { invoiceId, status, amount, ccy } = req.body;
         
