@@ -9,24 +9,32 @@ app.get('/health', (req, res) => res.sendStatus(200));
 // Тимчасове сховище в пам'яті
 const payments = new Map();
 
+// Приклад коду для Node.js (server.js)
 app.post('/monobank-webhook', (req, res) => {
-    console.log('Отримано вебхук:', req.body);
-    try {
-        const { invoiceId, status, amount, ccy } = req.body;
-        
-        if (!invoiceId || !status) {
-            return res.status(400).json({ error: 'Invalid payload' });
+    const { invoiceId, status } = req.body;
+
+    if (status === "success") {
+        let signal = "";
+        switch (invoiceId) {
+            case "bja-Qj0Koc37":
+                signal = "O";
+                break;
+            case "jxL_0qImuiJu":
+                signal = "D";
+                break;
+            case "ntiiXsomKr-U":
+                signal = "T";
+                break;
+            default:
+                console.log("Невідомий invoiceId:", invoiceId);
         }
 
-        payments.set(invoiceId, { status, amount, ccy, timestamp: new Date() });
-        console.log(`Payment updated: ${invoiceId} - ${status}`);
-        
-        res.status(200).json({ success: true });
-        
-    } catch (error) {
-        console.error('Webhook error:', error);
-        res.status(500).json({ error: 'Server error' });
+        if (signal) {
+            console.log(`[Лог] Сигнал ${signal} для invoiceId: ${invoiceId}`);
+        }
     }
+
+    res.sendStatus(200);
 });
 
 app.get('/payment-status/:invoiceId', (req, res) => {
