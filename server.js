@@ -36,8 +36,6 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: "Внутрішня помилка сервера" });
 });
 
-// Health check
-app.get('/health', (req, res) => res.sendStatus(200));
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Сервер працює на порті ${PORT}`));
@@ -50,5 +48,3 @@ app.get('/payment-status/:invoiceId', (req, res) => {
 // Health check
 app.get('/health', (req, res) => res.sendStatus(200));
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Сервер запущено на порті ${PORT}`));
