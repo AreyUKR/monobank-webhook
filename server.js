@@ -4,29 +4,33 @@ const app = express();
 
 app.use(bodyParser.json());
 
-// Сховище для платежів: { invoiceId: { status, amount } }
+// Сховище для платежів: { invoiceId: { amount, status } }
 const payments = new Map();
 
 // Обробник вебхука від Monobank
 app.post('/monobank-webhook', (req, res) => {
     try {
         const { invoiceId, status, amount } = req.body;
-
-        // Зберігаємо статус та суму
-        payments.set(invoiceId, { status, amount });
-        console.log(`Отримано платіж: ${invoiceId}, ${amount} UAH, статус: ${status}`);
-
+        
+        // Зберігаємо платіж
+        payments.set(invoiceId, { amount, status });
+        console.log(`Отримано платіж: ${invoiceId}, ${amount} копійок, статус: ${status}`);
+        
         res.sendStatus(200);
     } catch (error) {
         console.error("Помилка обробки вебхука:", error);
-        res.sendStatus(200); // Monobank вимагає 200 OK
+        res.sendStatus(200);
     }
 });
 
-// Ендпоінт для перевірки статусу
-app.get('/payment-status/:invoiceId', (req, res) => {
-    const payment = payments.get(req.params.invoiceId) || { status: 'pending' };
-    res.json(payment);
+// Ендпоінт для отримання всіх платежів
+app.get('/payments', (req, res) => {
+    const paymentsArray = Array.from(payments.entries()).map(([invoiceId, data]) => ({
+        invoiceId,
+        amount: data.amount,
+        status: data.status
+    }));
+    res.json(paymentsArray);
 });
 
 // Health check
