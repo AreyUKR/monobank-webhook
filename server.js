@@ -11,11 +11,8 @@ const payments = new Map();
 app.post('/monobank-webhook', (req, res) => {
     try {
         const { invoiceId, status, amount } = req.body;
-        
-        // Зберігаємо платіж
         payments.set(invoiceId, { amount, status });
         console.log(`Отримано платіж: ${invoiceId}, ${amount} копійок, статус: ${status}`);
-        
         res.sendStatus(200);
     } catch (error) {
         console.error("Помилка обробки вебхука:", error);
@@ -23,14 +20,20 @@ app.post('/monobank-webhook', (req, res) => {
     }
 });
 
-// Ендпоінт для отримання всіх платежів
-app.get('/payments', (req, res) => {
-    const paymentsArray = Array.from(payments.entries()).map(([invoiceId, data]) => ({
+// Ендпоінт для отримання одного платежу та його видалення
+app.get('/payment', (req, res) => {
+    if (payments.size === 0) {
+        return res.status(404).json({ message: 'Немає нових платежів' });
+    }
+
+    const [invoiceId, data] = payments.entries().next().value;
+    payments.delete(invoiceId);
+
+    res.json({
         invoiceId,
         amount: data.amount,
         status: data.status
-    }));
-    res.json(paymentsArray);
+    });
 });
 
 // Health check
