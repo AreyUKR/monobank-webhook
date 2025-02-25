@@ -1,45 +1,31 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
-app.get('/health', (req, res) => res.sendStatus(200));
 
-// Тимчасове сховище в пам'яті
+// Сховище для збереження статусів платежів
 const payments = new Map();
 
-// Приклад коду для Node.js (server.js)
+// Обробник вебхука від Monobank
 app.post('/monobank-webhook', (req, res) => {
     const { invoiceId, status } = req.body;
 
-    if (status === "success") {
-        let signal = "";
-        switch (invoiceId) {
-            case "bja-Qj0Koc37":
-                signal = "O";
-                break;
-            case "jxL_0qImuiJu":
-                signal = "D";
-                break;
-            case "ntiiXsomKr-U":
-                signal = "T";
-                break;
-            default:
-                console.log("Невідомий invoiceId:", invoiceId);
-        }
-
-        if (signal) {
-            console.log(`[Лог] Сигнал ${signal} для invoiceId: ${invoiceId}`);
-        }
-    }
+    // Зберігаємо статус платежу
+    payments.set(invoiceId, status);
+    console.log(`Отримано статус для ${invoiceId}: ${status}`);
 
     res.sendStatus(200);
 });
 
+// Ендпоінт для перевірки статусу
 app.get('/payment-status/:invoiceId', (req, res) => {
-    const payment = payments.get(req.params.invoiceId);
-    res.json(payment || { error: 'Not found' });
+    const status = payments.get(req.params.invoiceId) || 'pending';
+    res.json({ status });
 });
 
-app.listen(PORT, () => console.log(`Webhook running on port ${PORT}`));
+// Health check
+app.get('/health', (req, res) => res.sendStatus(200));
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Сервер запущено на порті ${PORT}`));
